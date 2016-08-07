@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+if File.exists?('Therunnerfile')
+  require 'the_runner'
+  require 'the_runner/therunnerfile/handler'
+  load './Therunnerfile'
+  # TODO check if ARGV[0] exists and if not - display usage help
+  TheRunner::Therunnerfile::Handler.new.handle(ARGV[0])
+else
+  # TODO dedicated error
+  raise StandardError.new('No Therunnerfile found.')
+end

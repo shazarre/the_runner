@@ -1,0 +1,81 @@
+TheRunner.context("example-ls") do |context|
+  # Adding single server
+  context.add_server('host.example.com')
+  # Command to run on specified server
+  context.command = 'ls -al'
+end
+
+TheRunner.context("example-ls-multiple") do |context|
+  context.add_server('host.example.com')
+  # Adding another server, command will be executed sequentially
+  context.add_server('another.example.com')
+  context.command = 'ls -al'
+end
+
+TheRunner.context("example-ls-multiple-add-servers") do |context|
+  # Instead of calling add_server twice, you can call add_servers once with array of servers
+  context.add_servers(['host.example.com', 'another.example.com'])
+  context.command = 'ls -al'
+end
+
+TheRunner.context("example-server-config") do |context|
+  # Both add_servers and add_server will yield a server config if you provide a block. In this
+  # case both servers will share the same config.
+  context.add_servers(['host.example.com', 'another.example.com']) { |config|
+    config.runner_options = {
+      # Will disable key checks while connecting to server (default: false) by
+      # prepending '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+      :disable_key_checking => true,
+      # Will use this username while connecting to server (default: nil, no username 
+      # would be used)
+      :user => 'root',      
+      # Will enable ssh debugging by adding '-vvv' to the command
+      :debug => true,      
+    }
+  }
+  context.command = 'ls -al'
+end
+
+TheRunner.context("example-mutiple-configs") do |context|
+  # We specify one host with specific config
+  context.add_server('host.example.com') { |config|
+    config.runner_options = {
+      :user => 'root',
+    }
+  }
+  
+  # Another host with different config
+  context.add_server('another.example.com') { |config|
+    config.runner_options = {
+      :debug => true,
+    }
+  }
+  
+  # And yet another host without any config (which means: default one)
+  context.add_server('yet-another.example.com')
+  context.command = 'ls -al'
+end
+
+TheRunner.context("example-parallel") do |context|
+  context.add_server('host.example.com') { |config|
+    config.runner_options = {
+      :user => 'root',
+    }
+  }
+  context.add_server('another.example.com') { |config|
+    config.runner_options = {
+      :debug => true,
+    }
+  }
+  context.add_server('yet-another.example.com')
+  context.command = 'ls -al'
+  # Parallel option means that the specified command will be executed in parallel
+  # (in multiple threads) instead of sequentially.
+  context.config.parallel = true
+end
+
+# Default context
+TheRunner.context do |context|
+  context.add_server('host.example.com')
+  context.command = 'uptime'
+end
